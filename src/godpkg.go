@@ -105,7 +105,7 @@ package main
 import "fmt"
 
 func main() {
-	fmt.Printf("Project set up correctly")
+	fmt.Printf("Project set up correctly\n")
 }
 `
 
@@ -185,7 +185,7 @@ func (*InitCommand) Run(args []string) int {
 
 	packages := &TemplateFile{
 		path:    pathAppend("/packages"),
-		content: "-v github.com/jakoblorz/godpkg",
+		content: "-v github.com/jakoblorz/godpkg\n",
 	}
 
 	install := &TemplateFile{
@@ -237,7 +237,7 @@ func (*InstallCommand) Run(args []string) int {
 
 	err := cmd.Run()
 	if err != nil {
-		log.Fatalf("Error while Installing: %s\n", err)
+		log.Fatalf("Error during Install: %s\n", err)
 		return 1
 	}
 
@@ -246,6 +246,37 @@ func (*InstallCommand) Run(args []string) int {
 
 // Synopsis returns the Help Text of the InstallCommand
 func (command *InstallCommand) Synopsis() string {
+	return command.Help()
+}
+
+// BuildCommand represents the data structure for
+// the build command
+type BuildCommand struct {
+}
+
+// Help returns the Help text for the BuildCommand
+func (*BuildCommand) Help() string {
+	return "builds the project"
+}
+
+// Run builds the project
+func (*BuildCommand) Run(args []string) int {
+
+	cmd := exec.Command("/bin/sh", "./scripts/build.sh")
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	err := cmd.Run()
+	if err != nil {
+		log.Fatalf("Error during Build: %s\n", err)
+		return 1
+	}
+
+	return 0
+}
+
+// Synopsis returns the Help Text of the BuildCommand
+func (command *BuildCommand) Synopsis() string {
 	return command.Help()
 }
 
@@ -261,9 +292,14 @@ func main() {
 		return &InitCommand{}, nil
 	}
 
+	build := func() (cli.Command, error) {
+		return &BuildCommand{}, nil
+	}
+
 	c.Commands = map[string]cli.CommandFactory{
 		"install": install,
 		"init":    init,
+		"build":   build,
 	}
 
 	status, err := c.Run()
