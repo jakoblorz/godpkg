@@ -185,7 +185,7 @@ func (*InitCommand) Run(args []string) int {
 
 	packages := &TemplateFile{
 		path:    pathAppend("/packages"),
-		content: "-v github.com/jakoblorz/godpkg\n",
+		content: "\n",
 	}
 
 	install := &TemplateFile{
