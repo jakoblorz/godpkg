@@ -9,6 +9,107 @@ import (
 	"github.com/mitchellh/cli"
 )
 
+var install = `
+#!/bin/bash
+
+# MIT License
+
+# Copyright (c) 2018 Jakob Lorz
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+
+export GOPATH="$(pwd)"
+export GOBIN="$(pwd)/bin"
+
+
+if ! [ -f "packages" ] ; then
+    touch "packages"
+fi
+
+if [ $# -eq 0 ] ; then
+    cat "packages" | while read in; do
+        if [ -n "$in" ] ; then
+            go get $in
+            echo "go get $in"
+        fi
+    done
+
+    
+    cat "packages" >> "packages.temp"
+    cat "packages.temp" | sed '/^$/d' > "packages"
+    rm "packages.temp"
+    
+    exit 0
+fi
+
+go get $*
+
+echo "\n$*" >> "packages"
+
+cat "packages" >> "packages.temp"
+cat "packages.temp" | sed '/^$/d' > "packages"
+rm "packages.temp"
+
+`
+
+var build = `
+#!/bin/bash
+
+# MIT License
+
+# Copyright (c) 2018 Jakob Lorz
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+
+export GOPATH="$(pwd)"
+export GOBIN="$(pwd)/bin"
+
+`
+
+var src = `
+package main
+
+import "fmt"
+
+func main() {
+	fmt.Printf("Project set up correctly")
+}
+`
+
 // CreateFolderStructure creates folders returning errors with the
 // path where the error occured; returning "", nil is the desired
 // case
@@ -51,7 +152,6 @@ type TemplateFile struct {
 // WriteToDisk writes the TemplateFile's contents into a file
 // at the TemplateFile's path
 func (file *TemplateFile) WriteToDisk() error {
-	fmt.Printf("%s\n", file.path)
 	return ioutil.WriteFile(file.path, []byte(file.content), 0644)
 }
 
@@ -89,7 +189,22 @@ func (*InitCommand) Run(args []string) int {
 		content: "-v github.com/jakoblorz/godpkg",
 	}
 
-	file, ferr := CreateFileStructure([]*TemplateFile{packages})
+	install := &TemplateFile{
+		path:    pathAppend("/scripts/install.sh"),
+		content: install,
+	}
+
+	build := &TemplateFile{
+		path:    pathAppend("/scripts/build.sh"),
+		content: build + "\ngo install \"$(pwd)/src/" + args[0] + ".go\"",
+	}
+
+	init := &TemplateFile{
+		path:    pathAppend("/src/" + args[0] + ".go"),
+		content: src,
+	}
+
+	file, ferr := CreateFileStructure([]*TemplateFile{packages, install, build, init})
 	if ferr != nil {
 		log.Fatalf("Error creating File %s: %s\n", file.String(), ferr)
 		return 1
