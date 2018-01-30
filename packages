@@ -8,4 +8,5 @@
 -v golang.org/x/tools/cmd/guru
 -v golang.org/x/tools/cmd/gorename
 -v github.com/golang/lint/golint
+-v github.com/derekparker/delve/cmd/dlv
 -v github.com/mitchellh/cli
