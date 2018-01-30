@@ -34,20 +34,124 @@ var install = `#!/bin/bash
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+RED='\033[0;31m'
+BLUE='\033[0;34m'
+YELLOW='\033[1;33m'
+NC='\033[0m'
 
-export GOPATH="$(pwd)"
-export GOBIN="$(pwd)/bin"
+function set_REPOARR () 
+{
+    OIFS="$IFS"
+    IFS="/"
+    read -a REPOARR <<< "${REPOURL}"
+    IFS="$OIFS"
+}
 
+function set_SCOPE () 
+{
+    SCOPE=$1
+}
+
+function set_REPOURL () 
+{
+    REPOURL=$2
+}
+
+function install_global ()
+{
+    export GOPATH="$(echo ~)/.go-env"
+    export GOBIN="$(echo ~)/.go-env/bin"
+
+    PKGFOLDS="$(find $(echo ~)/.go-env/pkg/* -maxdepth 0 -type d)"
+    BINARY="${REPOURL##*/}"
+
+    printf "${BLUE}[install${NC}${YELLOW}@${SCOPE}${NC}${BLUE}]${NC} $REPOURL -> $(echo ~)/.go-env\n"
+
+    echo " - installing dependency $REPOURL"
+    go get -v "$REPOURL"
+
+    echo " - creating symlink $(echo ~)/.go-env/src/$REPOURL -> $(pwd)/src/$REPOURL"
+    mkdir -p "$(pwd)/src/$REPOURL"
+    cp -ans "$(echo ~)/.go-env/src/$REPOURL" "$(pwd)/src/$REPOURL"
+
+    pkgdir="$(find $(echo ~)/.go-env/pkg/* -maxdepth 0 -type d)"
+    for arch in $PKGFOLDS; do
+        if [ -d "${arch}" ]; then
+
+            PKG="${arch##*/}"
+            PKGHOST=${REPOARR[0]}
+            PKGUSER=${REPOARR[1]}
+
+            echo " - creating symlink $(echo ~)/.go-env/pkg/${PKG}/${PKGHOST}/${PKGUSER} -> $(pwd)/pkg/${PKG}/${PKGHOST}/${PKGUSER}"
+            mkdir -p "$(pwd)/pkg/${PKG}/${PKGHOST}/${PKGUSER}"
+            cp -ans "$(echo ~)/.go-env/pkg/${PKG}/${PKGHOST}/${PKGUSER}" "$(pwd)/pkg/${PKG}/${PKGHOST}"
+        fi
+    done
+
+    if [ -f "$(echo ~)/.go-env/bin/$BINARY" ] ; then
+        echo " - creating symlink $(echo ~)/.go-env/bin/$BINARY -> $(pwd)/bin/$BINARY"
+        mkdir -p "$(pwd)/bin"
+        cp -ans "$(echo ~)/.go-env/bin/$BINARY" "$(pwd)/bin/$BINARY"
+    fi
+
+    if [ $3 ] ; then
+
+        echo " - adding dependency to $(pwd)/packages"
+        printf "\n${SCOPE} ${REPOURL}" >> "packages"
+        cat "packages" >> "packages.temp"
+        cat "packages.temp" | sed '/^$/d' > "packages"
+        rm "packages.temp"
+    fi
+}
+
+function install_local () 
+{
+    export GOPATH="$(pwd)"
+    export GOBIN="$(pwd)/bin"
+
+    printf "${BLUE}[install${NC}${YELLOW}@${SCOPE}${NC}${BLUE}]${NC} ${REPOURL} -> $(pwd)/\n"
+
+    echo " - installing dependency ${REPOURL}"
+    go get -v "${REPOURL}"
+
+    if [ $3 ] ; then
+
+        echo " - adding dependency to $(pwd)/packages"
+        printf "\n${SCOPE} ${REPOURL}" >> "packages"
+        cat "packages" >> "packages.temp"
+        cat "packages.temp" | sed '/^$/d' > "packages"
+        rm "packages.temp"
+    fi
+
+}
 
 if ! [ -f "packages" ] ; then
     touch "packages"
 fi
 
 if [ $# -eq 0 ] ; then
+
+    export GOPATH="$(pwd)"
+    export GOBIN="$(pwd)/bin"
+
     cat "packages" | while read in; do
         if [ -n "$in" ] ; then
-            go get $in
-            echo "go get $in"
+
+            line=($in)
+
+            set_SCOPE ${line[0]} ${line[1]}
+            set_REPOURL ${line[0]} ${line[1]}
+            set_REPOARR ${line[0]} ${line[1]}
+
+            if [ $SCOPE == "global" ] ; then
+
+                install_global $1 $2 false
+            fi
+
+            if [ $SCOPE == "local" ] ; then
+
+                install_local $1 $2 false
+            fi
         fi
     done
 
@@ -59,13 +163,28 @@ if [ $# -eq 0 ] ; then
     exit 0
 fi
 
-go get $*
+if [ $# -eq 2 ] ; then
 
-echo "\n$*" >> "packages"
+    set_SCOPE $1 $2
+    set_REPOURL $1 $2
+    set_REPOARR $1 $2
 
-cat "packages" >> "packages.temp"
-cat "packages.temp" | sed '/^$/d' > "packages"
-rm "packages.temp"
+    if [ $SCOPE == "global" ] ; then
+
+        install_global $1 $2 true
+        exit 0
+    fi
+
+    if [ $1 == "local" ] ; then
+
+        install_local $1 $2 true
+        exit 0
+    fi
+fi
+
+printf "${RED}[error]${NC} missing argument: global or local?\n"
+exit 1
+
 
 `
 
@@ -224,11 +343,11 @@ type InstallCommand struct {
 
 // Help returns the Help Text for the InstallCommand
 func (*InstallCommand) Help() string {
-	return "installs a dependency; uses the same syntax as go get"
+	return "installs a dependency; download the dependency into the project (local) or use ~./go-env as cache and symlink (global)"
 }
 
 // Run installs the go package
-func (*InstallCommand) Run(args []string) int {
+func (command *InstallCommand) Run(args []string) int {
 	arguments := append([]string{"./scripts/install.sh"}, args...)
 
 	cmd := exec.Command("/bin/sh", arguments...)
