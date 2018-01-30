@@ -8,3 +8,4 @@
 -v golang.org/x/tools/cmd/guru
 -v golang.org/x/tools/cmd/gorename
 -v github.com/golang/lint/golint
+-v github.com/mitchellh/cli
