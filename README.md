@@ -1,12 +1,12 @@
 # godpkg
-Ever wondered why setting up Go Environments is so complicated? Then this Package Manager is for you! godpkg (pronounced *god*-pkg or *go*-dpkg? :stuck_out_tongue_winking_eye:) keeps track of the dependencies you install using a plain file (*./packages*) which allows you the reinstall dependecies later. Furthermore, the scripts to **build** and **install** set their own GOPATH thus keeping all dependencies in your folder structure (just like in *node_modules* when using *npm*).
+Ever wondered why setting up Go Environments is so complicated? Then this Package Manager is for you! godpkg (pronounced *god*-pkg or *go*-dpkg? :stuck_out_tongue_winking_eye:) keeps track of the dependencies you install using a plain file (*./packages*) which allows you the reinstall dependecies later. Furthermore, the scripts to **build** and **install** set their own GOPATH thus keep all dependencies in your folder structure (just like in *node_modules* when using *npm*).
 
-With this package manager I want to lower the entry barrier for newcomers who might be overwhelmed by the complicated and centralized setup process for golang environments, but please (Quoting @nathany) [Recognize that **Go is different**](https://nathany.com/go-packages/). I advise you to later switch to more common managers embraced by the Go community.
+With this package manager I want to lower the entry barrier for newcomers who might be overwhelmed by the complicated and centralized setup process for Go Environments, but please (Quoting @nathany) [Recognize that **Go is different**](https://nathany.com/go-packages/). I advise you to switch to more common managers embraced by the Go Community later.
 People should be free to choose whatever package manager they might like which is why I will list popular go package managers:
   - [dep](https://github.com/golang/dep)
   - [godep](https://github.com/tools/godep)
   
- If you want to add more, feel free to PR.
+ If you want to add more, feel free to PR and if you like this project, :star: it!
 
 ## Install
 ```bash
