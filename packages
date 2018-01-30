@@ -1,16 +1,16 @@
--v github.com/nsf/gocode
--v github.com/uudashr/gopkgs/cmd/gopkgs
--v github.com/ramya-rao-a/go-outline
--v github.com/acroca/go-symbols
--v golang.org/x/tools/cmd/guru
--v golang.org/x/tools/cmd/gorename
--v github.com/fatih/gomodifytags
--v github.com/haya14busa/goplay/cmd/goplay
--v github.com/josharian/impl
--v github.com/rogpeppe/godef
--v golang.org/x/tools/cmd/godoc
--v sourcegraph.com/sqs/goreturns
--v github.com/golang/lint/golint
--v github.com/cweill/gotests/...
--v github.com/derekparker/delve/cmd/dlv
--v github.com/mitchellh/cli
+github.com/nsf/gocode
+github.com/uudashr/gopkgs/cmd/gopkgs
+github.com/ramya-rao-a/go-outline
+github.com/acroca/go-symbols
+golang.org/x/tools/cmd/guru
+golang.org/x/tools/cmd/gorename
+github.com/fatih/gomodifytags
+github.com/haya14busa/goplay/cmd/goplay
+github.com/josharian/impl
+github.com/rogpeppe/godef
+golang.org/x/tools/cmd/godoc
+sourcegraph.com/sqs/goreturns
+github.com/golang/lint/golint
+github.com/cweill/gotests/...
+github.com/derekparker/delve/cmd/dlv
+github.com/mitchellh/cli

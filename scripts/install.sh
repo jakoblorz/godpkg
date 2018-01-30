@@ -22,20 +22,28 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-
-export GOPATH="$(pwd)"
-export GOBIN="$(pwd)/bin"
-
+RED='\033[0;31m'
+BLUE='\033[0;34m'
+YELLOW='\033[1;33m'
+NC='\033[0m'
 
 if ! [ -f "packages" ] ; then
     touch "packages"
 fi
 
 if [ $# -eq 0 ] ; then
+
+    export GOPATH="$(pwd)"
+    export GOBIN="$(pwd)/bin"
+
     cat "packages" | while read in; do
         if [ -n "$in" ] ; then
-            go get $in
-            echo "go get $in"
+            printf "${BLUE}[install]${NC} $in -> $(pwd)/\n"
+
+            printf " - installing dependency $in\n"
+            go get -v $in | while read line; do
+                printf " - ${YELLOW}[message]${NC} $line\n"
+            done
         fi
     done
 
@@ -47,10 +55,72 @@ if [ $# -eq 0 ] ; then
     exit 0
 fi
 
-go get $*
+if [ $# -eq 2 ] ; then
 
-echo "\n$*" >> "packages"
+    SCOPE=$1
+    REPOURL=${@:2}
 
-cat "packages" >> "packages.temp"
-cat "packages.temp" | sed '/^$/d' > "packages"
-rm "packages.temp"
+    OIFS="$IFS"
+    IFS="/"
+    read -a REPOARR <<< "${REPOURL}"
+    IFS="$OIFS"
+
+
+    if [ $SCOPE == "global" ] ; then
+
+        export GOPATH="$(echo ~)/.go-env"
+        export GOBIN="$(echo ~)/.go-env/bin"
+
+        PKGFOLDS="$(find $(echo ~)/.go-env/pkg/* -maxdepth 0 -type d)"
+        BINARY="${REPOURL##*/}"
+
+        printf "${BLUE}[install${NC}${YELLOW}@${SCOPE}${NC}${BLUE}]${NC} $REPOURL -> $(echo ~)/.go-env\n"
+
+        echo " - installing dependency $REPOURL"
+        go get -v "$REPOURL"
+
+        echo " - creating symlink $(echo ~)/.go-env/src/$REPOURL -> $(pwd)/src/$REPOURL"
+        mkdir -p "$(pwd)/src/$REPOURL"
+        ln -sf "$(echo ~)/.go-env/src/$REPOURL" "$(pwd)/src/$REPOURL"
+
+        pkgdir="$(find $(echo ~)/.go-env/pkg/* -maxdepth 0 -type d)"
+        for arch in $PKGFOLDS; do
+            if [ -d "${arch}" ]; then
+
+                PKG="${arch##*/}"
+
+                echo " - creating symlink $(echo ~)/.go-env/pkg/${PKG}/${REPOARR[0]}/${REPOARR[1]} -> $(pwd)/pkg/${PKG}/${REPOARR[0]}/${REPOARR[1]}"
+                mkdir -p "$(pwd)/pkg/${PKG}/${REPOARR[0]}/${REPOARR[1]}"
+                ln -sf "$(echo ~)/.go-env/pkg/${PKG}/${REPOARR[0]}/${REPOARR[1]}" "$(pwd)/pkg/${PKG}/${REPOARR[0]}"
+            fi
+        done
+
+        if [ -f "$(echo ~)/.go-env/bin/$BINARY" ] ; then
+            echo " - creating symlink $(echo ~)/.go-env/bin/$BINARY -> $(pwd)/bin/$BINARY"
+            ln -sf "$(echo ~)/.go-env/bin/$BINARY" "$(pwd)/bin/$BINARY"
+        fi
+        exit 0
+    fi
+
+    if [ $1 == "local" ] ; then
+
+        printf "${BLUE}[install${NC}${YELLOW}@${SCOPE}${NC}${BLUE}]${NC} ${@:2} -> $(pwd)/\n"
+
+        export GOPATH="$(pwd)"
+        export GOBIN="$(pwd)/bin"
+
+        echo " - installing dependency ${REPOURL}"
+        go get -v "${REPOURL}"
+
+        echo " - adding dependency to $(pwd)/packages"
+        printf "\n${REPOURL}" >> "packages"
+        cat "packages" >> "packages.temp"
+        cat "packages.temp" | sed '/^$/d' > "packages"
+        rm "packages.temp"
+
+        exit 0
+    fi
+fi
+
+printf "${RED}[error]${NC} missing argument: global or local?\n"
+exit 1
