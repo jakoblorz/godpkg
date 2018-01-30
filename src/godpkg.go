@@ -177,7 +177,7 @@ func (*InitCommand) Run(args []string) int {
 		return "./" + args[0] + p
 	}
 
-	path, perr := CreateFolderStructure([]string{pathAppend("/bin"), pathAppend("/src"), pathAppend("/scripts")})
+	path, perr := CreateFolderStructure([]string{pathAppend("/bin"), pathAppend("/src"), pathAppend("/scripts"), pathAppend("/pkg")})
 	if perr != nil {
 		log.Fatalf("Error creating Directory %s: %s\n", path, perr)
 		return 1

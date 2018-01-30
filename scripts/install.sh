@@ -27,6 +27,92 @@ BLUE='\033[0;34m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
 
+function set_REPOARR () 
+{
+    OIFS="$IFS"
+    IFS="/"
+    read -a REPOARR <<< "${REPOURL}"
+    IFS="$OIFS"
+}
+
+function set_SCOPE () 
+{
+    SCOPE=$1
+}
+
+function set_REPOURL () 
+{
+    REPOURL=$2
+}
+
+function install_global ()
+{
+    export GOPATH="$(echo ~)/.go-env"
+    export GOBIN="$(echo ~)/.go-env/bin"
+
+    PKGFOLDS="$(find $(echo ~)/.go-env/pkg/* -maxdepth 0 -type d)"
+    BINARY="${REPOURL##*/}"
+
+    printf "${BLUE}[install${NC}${YELLOW}@${SCOPE}${NC}${BLUE}]${NC} $REPOURL -> $(echo ~)/.go-env\n"
+
+    echo " - installing dependency $REPOURL"
+    go get -v "$REPOURL"
+
+    echo " - creating symlink $(echo ~)/.go-env/src/$REPOURL -> $(pwd)/src/$REPOURL"
+    mkdir -p "$(pwd)/src/$REPOURL"
+    cp -ans "$(echo ~)/.go-env/src/$REPOURL" "$(pwd)/src/$REPOURL"
+
+    pkgdir="$(find $(echo ~)/.go-env/pkg/* -maxdepth 0 -type d)"
+    for arch in $PKGFOLDS; do
+        if [ -d "${arch}" ]; then
+
+            PKG="${arch##*/}"
+            PKGHOST=${REPOARR[0]}
+            PKGUSER=${REPOARR[1]}
+
+            echo " - creating symlink $(echo ~)/.go-env/pkg/${PKG}/${PKGHOST}/${PKGUSER} -> $(pwd)/pkg/${PKG}/${PKGHOST}/${PKGUSER}"
+            mkdir -p "$(pwd)/pkg/${PKG}/${PKGHOST}/${PKGUSER}"
+            cp -ans "$(echo ~)/.go-env/pkg/${PKG}/${PKGHOST}/${PKGUSER}" "$(pwd)/pkg/${PKG}/${PKGHOST}"
+        fi
+    done
+
+    if [ -f "$(echo ~)/.go-env/bin/$BINARY" ] ; then
+        echo " - creating symlink $(echo ~)/.go-env/bin/$BINARY -> $(pwd)/bin/$BINARY"
+        mkdir -p "$(pwd)/bin"
+        cp -ans "$(echo ~)/.go-env/bin/$BINARY" "$(pwd)/bin/$BINARY"
+    fi
+
+    if [ $3 ] ; then
+
+        echo " - adding dependency to $(pwd)/packages"
+        printf "\n${SCOPE} ${REPOURL}" >> "packages"
+        cat "packages" >> "packages.temp"
+        cat "packages.temp" | sed '/^$/d' > "packages"
+        rm "packages.temp"
+    fi
+}
+
+function install_local () 
+{
+    export GOPATH="$(pwd)"
+    export GOBIN="$(pwd)/bin"
+
+    printf "${BLUE}[install${NC}${YELLOW}@${SCOPE}${NC}${BLUE}]${NC} ${REPOURL} -> $(pwd)/\n"
+
+    echo " - installing dependency ${REPOURL}"
+    go get -v "${REPOURL}"
+
+    if [ $3 ] ; then
+
+        echo " - adding dependency to $(pwd)/packages"
+        printf "\n${SCOPE} ${REPOURL}" >> "packages"
+        cat "packages" >> "packages.temp"
+        cat "packages.temp" | sed '/^$/d' > "packages"
+        rm "packages.temp"
+    fi
+
+}
+
 if ! [ -f "packages" ] ; then
     touch "packages"
 fi
@@ -38,12 +124,29 @@ if [ $# -eq 0 ] ; then
 
     cat "packages" | while read in; do
         if [ -n "$in" ] ; then
-            printf "${BLUE}[install]${NC} $in -> $(pwd)/\n"
 
-            printf " - installing dependency $in\n"
-            go get -v $in | while read line; do
-                printf " - ${YELLOW}[message]${NC} $line\n"
-            done
+            line=($in)
+
+            set_SCOPE ${line[0]} ${line[1]}
+            set_REPOURL ${line[0]} ${line[1]}
+            set_REPOARR ${line[0]} ${line[1]}
+
+            if [ $SCOPE == "global" ] ; then
+
+                install_global $1 $2 false
+            fi
+
+            if [ $SCOPE == "local" ] ; then
+
+                install_local $1 $2 false
+            fi
+
+            # printf "${BLUE}[install]${NC} $in -> $(pwd)/\n"
+
+            # printf " - installing dependency $in\n"
+            # go get -v $in | while read line; do
+            #     printf " - ${YELLOW}[message]${NC} $line\n"
+            # done
         fi
     done
 
@@ -57,66 +160,67 @@ fi
 
 if [ $# -eq 2 ] ; then
 
-    SCOPE=$1
-    REPOURL=${@:2}
-
-    OIFS="$IFS"
-    IFS="/"
-    read -a REPOARR <<< "${REPOURL}"
-    IFS="$OIFS"
-
+    set_SCOPE $1 $2
+    set_REPOURL $1 $2
+    set_REPOARR $1 $2
 
     if [ $SCOPE == "global" ] ; then
 
-        export GOPATH="$(echo ~)/.go-env"
-        export GOBIN="$(echo ~)/.go-env/bin"
+        # export GOPATH="$(echo ~)/.go-env"
+        # export GOBIN="$(echo ~)/.go-env/bin"
 
-        PKGFOLDS="$(find $(echo ~)/.go-env/pkg/* -maxdepth 0 -type d)"
-        BINARY="${REPOURL##*/}"
+        # PKGFOLDS="$(find $(echo ~)/.go-env/pkg/* -maxdepth 0 -type d)"
+        # BINARY="${REPOURL##*/}"
 
-        printf "${BLUE}[install${NC}${YELLOW}@${SCOPE}${NC}${BLUE}]${NC} $REPOURL -> $(echo ~)/.go-env\n"
+        # printf "${BLUE}[install${NC}${YELLOW}@${SCOPE}${NC}${BLUE}]${NC} $REPOURL -> $(echo ~)/.go-env\n"
 
-        echo " - installing dependency $REPOURL"
-        go get -v "$REPOURL"
+        # echo " - installing dependency $REPOURL"
+        # go get -v "$REPOURL"
 
-        echo " - creating symlink $(echo ~)/.go-env/src/$REPOURL -> $(pwd)/src/$REPOURL"
-        mkdir -p "$(pwd)/src/$REPOURL"
-        ln -sf "$(echo ~)/.go-env/src/$REPOURL" "$(pwd)/src/$REPOURL"
+        # echo " - creating symlink $(echo ~)/.go-env/src/$REPOURL -> $(pwd)/src/$REPOURL"
+        # mkdir -p "$(pwd)/src/$REPOURL"
+        # cp -ans "$(echo ~)/.go-env/src/$REPOURL" "$(pwd)/src/$REPOURL"
 
-        pkgdir="$(find $(echo ~)/.go-env/pkg/* -maxdepth 0 -type d)"
-        for arch in $PKGFOLDS; do
-            if [ -d "${arch}" ]; then
+        # pkgdir="$(find $(echo ~)/.go-env/pkg/* -maxdepth 0 -type d)"
+        # for arch in $PKGFOLDS; do
+        #     if [ -d "${arch}" ]; then
 
-                PKG="${arch##*/}"
+        #         PKG="${arch##*/}"
+        #         PKGHOST=${REPOARR[0]}
+        #         PKGUSER=${REPOARR[1]}
 
-                echo " - creating symlink $(echo ~)/.go-env/pkg/${PKG}/${REPOARR[0]}/${REPOARR[1]} -> $(pwd)/pkg/${PKG}/${REPOARR[0]}/${REPOARR[1]}"
-                mkdir -p "$(pwd)/pkg/${PKG}/${REPOARR[0]}/${REPOARR[1]}"
-                ln -sf "$(echo ~)/.go-env/pkg/${PKG}/${REPOARR[0]}/${REPOARR[1]}" "$(pwd)/pkg/${PKG}/${REPOARR[0]}"
-            fi
-        done
+        #         echo " - creating symlink $(echo ~)/.go-env/pkg/${PKG}/${PKGHOST}/${PKGUSER} -> $(pwd)/pkg/${PKG}/${PKGHOST}/${PKGUSER}"
+        #         mkdir -p "$(pwd)/pkg/${PKG}/${PKGHOST}/${PKGUSER}"
+        #         cp -ans "$(echo ~)/.go-env/pkg/${PKG}/${PKGHOST}/${PKGUSER}" "$(pwd)/pkg/${PKG}/${PKGHOST}"
+        #     fi
+        # done
 
-        if [ -f "$(echo ~)/.go-env/bin/$BINARY" ] ; then
-            echo " - creating symlink $(echo ~)/.go-env/bin/$BINARY -> $(pwd)/bin/$BINARY"
-            ln -sf "$(echo ~)/.go-env/bin/$BINARY" "$(pwd)/bin/$BINARY"
-        fi
+        # if [ -f "$(echo ~)/.go-env/bin/$BINARY" ] ; then
+        #     echo " - creating symlink $(echo ~)/.go-env/bin/$BINARY -> $(pwd)/bin/$BINARY"
+        #     mkdir -p "$(pwd)/bin"
+        #     cp -ans "$(echo ~)/.go-env/bin/$BINARY" "$(pwd)/bin/$BINARY"
+        # fi
+        install_global $1 $2 true
         exit 0
     fi
 
     if [ $1 == "local" ] ; then
 
-        printf "${BLUE}[install${NC}${YELLOW}@${SCOPE}${NC}${BLUE}]${NC} ${@:2} -> $(pwd)/\n"
+        # printf "${BLUE}[install${NC}${YELLOW}@${SCOPE}${NC}${BLUE}]${NC} ${@:2} -> $(pwd)/\n"
 
-        export GOPATH="$(pwd)"
-        export GOBIN="$(pwd)/bin"
+        # export GOPATH="$(pwd)"
+        # export GOBIN="$(pwd)/bin"
 
-        echo " - installing dependency ${REPOURL}"
-        go get -v "${REPOURL}"
+        # echo " - installing dependency ${REPOURL}"
+        # go get -v "${REPOURL}"
 
-        echo " - adding dependency to $(pwd)/packages"
-        printf "\n${REPOURL}" >> "packages"
-        cat "packages" >> "packages.temp"
-        cat "packages.temp" | sed '/^$/d' > "packages"
-        rm "packages.temp"
+        # echo " - adding dependency to $(pwd)/packages"
+        # printf "\n${REPOURL}" >> "packages"
+        # cat "packages" >> "packages.temp"
+        # cat "packages.temp" | sed '/^$/d' > "packages"
+        # rm "packages.temp"
+
+        install_local $1 $2 true
 
         exit 0
     fi
