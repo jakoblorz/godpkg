@@ -21,11 +21,11 @@ godpkg init <name>
 You can then `cd` into the created folder and execute all the other command with the shell's `cwd` pointing to the root of the project.
 
 ### (Re-) Install Dependencies
-To install specific dependencies, you can use the install command. Further arguments (e.g. `github.com/user/...`) will be piped over to `go get` which is used under the hood.
+To install specific dependencies, you can use the install command. `go get ...` is used under the hood. If you want to install the dependency directly (into the current project structure), choose **local**. Otherwise (**global**) the dependencies will be installed into `~/.go-env` and symlinked into the project folder (linking *bin, pkg and src*). Similar to a "normal" Go Environment with fixed GOPATH, dependencies can be shared between different projects which reduces the footprint significantly.
 ```bash
-godpkg install github.com/user/...
+godpkg install <local|global> github.com/user/...
 ```
-If you omit any further arguments, the `packages` file will be read and each command listed there will be piped over to `go get`.
+When omitting all arguments (`godpkg install`), godpkg will read the `./packages` file and install the listed dependencies (even with the original local/global scope).
 
 ### Build your Project
 If you call `build`, the file in `src/<foldername>.go` will be built.
