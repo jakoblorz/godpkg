@@ -1,0 +1,10 @@
+-v github.com/uudashr/gopkgs/cmd/gopkgs
+-v sourcegraph.com/sqs/goreturns
+-v github.com/nsf/gocode
+-v github.com/ramya-rao-a/go-outline
+-v github.com/rogpeppe/godef
+-v golang.org/x/tools/cmd/godoc
+-v github.com/acroca/go-symbols
+-v golang.org/x/tools/cmd/guru
+-v golang.org/x/tools/cmd/gorename
+-v github.com/golang/lint/golint
