@@ -5,12 +5,12 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"os/exec"
 
 	"github.com/mitchellh/cli"
 )
 
-var install = `
-#!/bin/bash
+var install = `#!/bin/bash
 
 # MIT License
 
@@ -69,8 +69,7 @@ rm "packages.temp"
 
 `
 
-var build = `
-#!/bin/bash
+var build = `#!/bin/bash
 
 # MIT License
 
@@ -225,12 +224,23 @@ type InstallCommand struct {
 
 // Help returns the Help Text for the InstallCommand
 func (*InstallCommand) Help() string {
-	return "install dependency"
+	return "installs a dependency; uses the same syntax as go get"
 }
 
 // Run installs the go package
 func (*InstallCommand) Run(args []string) int {
-	fmt.Printf("install, %v\n", args)
+	arguments := append([]string{"./scripts/install.sh"}, args...)
+
+	cmd := exec.Command("/bin/sh", arguments...)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	err := cmd.Run()
+	if err != nil {
+		log.Fatalf("Error while Installing: %s\n", err)
+		return 1
+	}
+
 	return 0
 }
 
