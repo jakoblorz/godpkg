@@ -26,4 +26,4 @@
 export GOPATH="$(pwd)"
 export GOBIN="$(pwd)/bin"
 
-go install "$(pwd)/src/godpgk.go"
+go install "$(pwd)/src/godpkg.go"
