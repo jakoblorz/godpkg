@@ -140,13 +140,6 @@ if [ $# -eq 0 ] ; then
 
                 install_local $1 $2 false
             fi
-
-            # printf "${BLUE}[install]${NC} $in -> $(pwd)/\n"
-
-            # printf " - installing dependency $in\n"
-            # go get -v $in | while read line; do
-            #     printf " - ${YELLOW}[message]${NC} $line\n"
-            # done
         fi
     done
 
@@ -166,62 +159,13 @@ if [ $# -eq 2 ] ; then
 
     if [ $SCOPE == "global" ] ; then
 
-        # export GOPATH="$(echo ~)/.go-env"
-        # export GOBIN="$(echo ~)/.go-env/bin"
-
-        # PKGFOLDS="$(find $(echo ~)/.go-env/pkg/* -maxdepth 0 -type d)"
-        # BINARY="${REPOURL##*/}"
-
-        # printf "${BLUE}[install${NC}${YELLOW}@${SCOPE}${NC}${BLUE}]${NC} $REPOURL -> $(echo ~)/.go-env\n"
-
-        # echo " - installing dependency $REPOURL"
-        # go get -v "$REPOURL"
-
-        # echo " - creating symlink $(echo ~)/.go-env/src/$REPOURL -> $(pwd)/src/$REPOURL"
-        # mkdir -p "$(pwd)/src/$REPOURL"
-        # cp -ans "$(echo ~)/.go-env/src/$REPOURL" "$(pwd)/src/$REPOURL"
-
-        # pkgdir="$(find $(echo ~)/.go-env/pkg/* -maxdepth 0 -type d)"
-        # for arch in $PKGFOLDS; do
-        #     if [ -d "${arch}" ]; then
-
-        #         PKG="${arch##*/}"
-        #         PKGHOST=${REPOARR[0]}
-        #         PKGUSER=${REPOARR[1]}
-
-        #         echo " - creating symlink $(echo ~)/.go-env/pkg/${PKG}/${PKGHOST}/${PKGUSER} -> $(pwd)/pkg/${PKG}/${PKGHOST}/${PKGUSER}"
-        #         mkdir -p "$(pwd)/pkg/${PKG}/${PKGHOST}/${PKGUSER}"
-        #         cp -ans "$(echo ~)/.go-env/pkg/${PKG}/${PKGHOST}/${PKGUSER}" "$(pwd)/pkg/${PKG}/${PKGHOST}"
-        #     fi
-        # done
-
-        # if [ -f "$(echo ~)/.go-env/bin/$BINARY" ] ; then
-        #     echo " - creating symlink $(echo ~)/.go-env/bin/$BINARY -> $(pwd)/bin/$BINARY"
-        #     mkdir -p "$(pwd)/bin"
-        #     cp -ans "$(echo ~)/.go-env/bin/$BINARY" "$(pwd)/bin/$BINARY"
-        # fi
         install_global $1 $2 true
         exit 0
     fi
 
     if [ $1 == "local" ] ; then
 
-        # printf "${BLUE}[install${NC}${YELLOW}@${SCOPE}${NC}${BLUE}]${NC} ${@:2} -> $(pwd)/\n"
-
-        # export GOPATH="$(pwd)"
-        # export GOBIN="$(pwd)/bin"
-
-        # echo " - installing dependency ${REPOURL}"
-        # go get -v "${REPOURL}"
-
-        # echo " - adding dependency to $(pwd)/packages"
-        # printf "\n${REPOURL}" >> "packages"
-        # cat "packages" >> "packages.temp"
-        # cat "packages.temp" | sed '/^$/d' > "packages"
-        # rm "packages.temp"
-
         install_local $1 $2 true
-
         exit 0
     fi
 fi
