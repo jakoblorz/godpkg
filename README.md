@@ -10,7 +10,7 @@ People should be free to choose whatever package manager they might like which i
 
 ## Install
 ```bash
-curl
+curl -sL http://github.com/jakoblorz/godpkg/raw/master/bin/godpkg > /usr/local/bin/godpkg && chmod +x /usr/local/bin/godpkg
 ```
 
 ## Usage
