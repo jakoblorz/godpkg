@@ -51,10 +51,16 @@ function set_HEAD ()
     HEAD=${HEADSEARCH[0]}
 }
 
+function set_GOPATH ()
+{
+    export GOPATH=$1
+    export GOBIN=$2
+}
+
 function install_global ()
 {
-    export GOPATH="$(echo ~)/.go-env"
-    export GOBIN="$(echo ~)/.go-env/bin"
+
+    set_GOPATH "$(echo ~)/.go-env" "$(echo ~)/.go-env/bin"
 
     PKGFOLDS="$(find $(echo ~)/.go-env/pkg/* -maxdepth 0 -type d)"
     BINARY="${REPOURL##*/}"
@@ -100,8 +106,7 @@ function install_global ()
 
 function install_local () 
 {
-    export GOPATH="$(pwd)"
-    export GOBIN="$(pwd)/bin"
+    set_GOPATH "$(pwd)" "$(pwd)/bin"
 
     printf "${BLUE}[install${NC}${YELLOW}@${SCOPE}${NC}${BLUE}]${NC} ${REPOURL} -> $(pwd)/\n"
 
