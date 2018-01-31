@@ -60,7 +60,7 @@ function install_global ()
 
     echo " - creating symlink $(echo ~)/.go-env/src/$REPOURL -> $(pwd)/src/$REPOURL"
     mkdir -p "$(pwd)/src/$REPOURL"
-    cp -ans "$(echo ~)/.go-env/src/$REPOURL" "$(pwd)/src/$REPOURL"
+    cp -an "$(echo ~)/.go-env/src/$REPOURL" "$(pwd)/src/$REPOURL"
 
     pkgdir="$(find $(echo ~)/.go-env/pkg/* -maxdepth 0 -type d)"
     for arch in $PKGFOLDS; do
@@ -72,14 +72,14 @@ function install_global ()
 
             echo " - creating symlink $(echo ~)/.go-env/pkg/${PKG}/${PKGHOST}/${PKGUSER} -> $(pwd)/pkg/${PKG}/${PKGHOST}/${PKGUSER}"
             mkdir -p "$(pwd)/pkg/${PKG}/${PKGHOST}/${PKGUSER}"
-            cp -ans "$(echo ~)/.go-env/pkg/${PKG}/${PKGHOST}/${PKGUSER}" "$(pwd)/pkg/${PKG}/${PKGHOST}"
+            cp -an "$(echo ~)/.go-env/pkg/${PKG}/${PKGHOST}/${PKGUSER}" "$(pwd)/pkg/${PKG}/${PKGHOST}"
         fi
     done
 
     if [ -f "$(echo ~)/.go-env/bin/$BINARY" ] ; then
         echo " - creating symlink $(echo ~)/.go-env/bin/$BINARY -> $(pwd)/bin/$BINARY"
         mkdir -p "$(pwd)/bin"
-        cp -ans "$(echo ~)/.go-env/bin/$BINARY" "$(pwd)/bin/$BINARY"
+        cp -an "$(echo ~)/.go-env/bin/$BINARY" "$(pwd)/bin/$BINARY"
     fi
 
     if [ $3 ] ; then
