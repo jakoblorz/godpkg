@@ -62,13 +62,17 @@ function set_ARCHITECTURES ()
     ARCHITECTURES="$(find ${1}/pkg/* -maxdepth 0 -type d)"
 }
 
+function set_BINARY ()
+{
+    BINARY="${REPOURL##*/}"
+}
+
 function install_global ()
 {
 
     set_GOPATH "$(echo ~)/.go-env" "$(echo ~)/.go-env/bin"
     set_ARCHITECTURES "$(echo ~)/.go-env"
-
-    BINARY="${REPOURL##*/}"
+    set_BINARY
 
     printf "${BLUE}[install${NC}${YELLOW}@${SCOPE}${NC}${BLUE}]${NC} $REPOURL -> $(echo ~)/.go-env\n"
 
