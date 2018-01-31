@@ -57,12 +57,17 @@ function set_GOPATH ()
     export GOBIN=$2
 }
 
+function set_ARCHITECTURES ()
+{
+    ARCHITECTURES="$(find ${1}/pkg/* -maxdepth 0 -type d)"
+}
+
 function install_global ()
 {
 
     set_GOPATH "$(echo ~)/.go-env" "$(echo ~)/.go-env/bin"
+    set_ARCHITECTURES "$(echo ~)/.go-env"
 
-    PKGFOLDS="$(find $(echo ~)/.go-env/pkg/* -maxdepth 0 -type d)"
     BINARY="${REPOURL##*/}"
 
     printf "${BLUE}[install${NC}${YELLOW}@${SCOPE}${NC}${BLUE}]${NC} $REPOURL -> $(echo ~)/.go-env\n"
@@ -75,10 +80,10 @@ function install_global ()
     cp -ans "$(echo ~)/.go-env/src/$REPOURL" "$(pwd)/src/$REPOURL"
 
     pkgdir="$(find $(echo ~)/.go-env/pkg/* -maxdepth 0 -type d)"
-    for arch in $PKGFOLDS; do
-        if [ -d "${arch}" ]; then
+    for ARCH in $ARCHITECTURES; do
+        if [ -d "${ARCH}" ]; then
 
-            PKG="${arch##*/}"
+            PKG="${ARCH##*/}"
             PKGHOST=${REPOARR[0]}
             PKGUSER=${REPOARR[1]}
 
