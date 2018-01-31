@@ -45,6 +45,12 @@ function set_REPOURL ()
     REPOURL=$2
 }
 
+function set_HEAD ()
+{
+    local HEADSEARCH=($(git ls-remote https://$REPOURL | grep "HEAD$"))
+    HEAD=${HEADSEARCH[0]}
+}
+
 function install_global ()
 {
     export GOPATH="$(echo ~)/.go-env"
@@ -55,7 +61,7 @@ function install_global ()
 
     printf "${BLUE}[install${NC}${YELLOW}@${SCOPE}${NC}${BLUE}]${NC} $REPOURL -> $(echo ~)/.go-env\n"
 
-    echo " - installing dependency $REPOURL"
+    echo " - installing dependency $REPOURL[$HEAD]"
     go get -v "$REPOURL"
 
     echo " - creating symlink $(echo ~)/.go-env/src/$REPOURL -> $(pwd)/src/$REPOURL"
@@ -99,7 +105,7 @@ function install_local ()
 
     printf "${BLUE}[install${NC}${YELLOW}@${SCOPE}${NC}${BLUE}]${NC} ${REPOURL} -> $(pwd)/\n"
 
-    echo " - installing dependency ${REPOURL}"
+    echo " - installing dependency $REPOURL[$HEAD]"
     go get -v "${REPOURL}"
 
     if [ $3 ] ; then
@@ -156,6 +162,7 @@ if [ $# -eq 2 ] ; then
     set_SCOPE $1 $2
     set_REPOURL $1 $2
     set_REPOARR $1 $2
+    set_HEAD $1 $2
 
     if [ $SCOPE == "global" ] ; then
 
