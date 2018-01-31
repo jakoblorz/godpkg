@@ -350,7 +350,7 @@ func (*InstallCommand) Help() string {
 func (command *InstallCommand) Run(args []string) int {
 	arguments := append([]string{"./scripts/install.sh"}, args...)
 
-	cmd := exec.Command("/bin/sh", arguments...)
+	cmd := exec.Command("/bin/bash", arguments...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
