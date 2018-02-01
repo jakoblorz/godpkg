@@ -16,7 +16,7 @@ At this point this project is just a compilation of scripts I personally used in
 
 ## Install
 ```bash
-curl -sL https://github.com/jakoblorz/godpkg/releases/download/v0.2.1-alpha/godpkg-0.2.1-amd64 > /usr/local/bin/godpkg && chmod +x /usr/local/bin/godpkg
+curl -sL https://github.com/jakoblorz/godpkg/releases/download/v0.2.2-alpha/godpkg-0.2.2-amd_64 > /usr/local/bin/godpkg && chmod +x /usr/local/bin/godpkg
 ```
 
 ## Usage
