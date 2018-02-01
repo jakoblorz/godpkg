@@ -1,11 +1,11 @@
 package main
 
 import (
-	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
+	"path/filepath"
 
 	"github.com/mitchellh/cli"
 )
@@ -215,7 +215,6 @@ var build = `#!/bin/bash
 
 export GOPATH="$(pwd)"
 export GOBIN="$(pwd)/bin"
-
 `
 
 var src = `
@@ -233,7 +232,6 @@ func main() {
 // case
 func CreateFolderStructure(folders []string) (string, error) {
 	for _, path := range folders {
-		fmt.Printf("%s\n", path)
 
 		err := os.MkdirAll(path, os.ModePerm)
 		if err != nil {
@@ -249,7 +247,6 @@ func CreateFolderStructure(folders []string) (string, error) {
 // case
 func CreateFileStructure(files []*TemplateFile) (*TemplateFile, error) {
 	for _, file := range files {
-		fmt.Printf("%s\n", file.String())
 
 		err := file.WriteToDisk()
 		if err != nil {
@@ -258,6 +255,28 @@ func CreateFileStructure(files []*TemplateFile) (*TemplateFile, error) {
 	}
 
 	return nil, nil
+}
+
+// EnsureScriptDirectory creates the ./scripts Directory if it cannot be found
+func EnsureScriptDirectory() error {
+	if _, err := os.Stat("./scripts"); os.IsNotExist(err) {
+		if _, derr := CreateFolderStructure([]string{"./scripts"}); derr != nil {
+			return derr
+		}
+	}
+
+	return nil
+}
+
+// EnsureTemplateFile create the template file if the template cannot be found
+func EnsureTemplateFile(template *TemplateFile) error {
+	if _, err := os.Stat(template.path); os.IsNotExist(err) {
+		if _, terr := CreateFileStructure([]*TemplateFile{template}); terr != nil {
+			return terr
+		}
+	}
+
+	return nil
 }
 
 // TemplateFile represents a file to be written at the path
@@ -348,6 +367,22 @@ func (*InstallCommand) Help() string {
 
 // Run installs the go package
 func (command *InstallCommand) Run(args []string) int {
+
+	if err := EnsureScriptDirectory(); err != nil {
+		log.Fatalf("Error during Install: Cannot create Folder ./scripts: %s", err)
+		return 1
+	}
+
+	template := &TemplateFile{
+		path:    "./scripts/install.sh",
+		content: install,
+	}
+
+	if err := EnsureTemplateFile(template); err != nil {
+		log.Fatalf("Error during Install: Cannot create Script ./scripts/install.sh: %s", err)
+		return 1
+	}
+
 	arguments := append([]string{"./scripts/install.sh"}, args...)
 
 	cmd := exec.Command("/bin/bash", arguments...)
@@ -380,6 +415,29 @@ func (*BuildCommand) Help() string {
 
 // Run builds the project
 func (*BuildCommand) Run(args []string) int {
+
+	if err := EnsureScriptDirectory(); err != nil {
+		log.Fatalf("Error during Build: Cannot create Folder ./scripts: %s", err)
+		return 1
+	}
+
+	fold, ferr := os.Getwd()
+	if ferr != nil {
+		log.Fatalf("Error during Build: Cannot read Working Directory: %s", ferr)
+		return 1
+	}
+
+	base := filepath.Base(fold)
+
+	template := &TemplateFile{
+		path:    "./scripts/build.sh",
+		content: build + "\ngo install \"$(pwd)/src/" + base + ".go\"",
+	}
+
+	if err := EnsureTemplateFile(template); err != nil {
+		log.Fatalf("Error during Build: Cannot create Script ./scripts/build.sh: %s", err)
+		return 1
+	}
 
 	cmd := exec.Command("/bin/sh", "./scripts/build.sh")
 	cmd.Stdout = os.Stdout
