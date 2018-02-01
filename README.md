@@ -1,4 +1,6 @@
 # godpkg
+[![GitHub Stats](https://img.shields.io/badge/github-stats-ff5500.svg)](http://githubstats.com/jakoblorz/godpkg)
+
 Go Environments use a opinionated project structure, which is why I scripted my Environment to manually switch between GOPATHs and symlink already existing versions of a dependency. `godpkg` is a cli-app which allows you to use the same scripts without having to manually copy them. Decide if you want to install a dependency in *local* scope (downloads / `go get`) right into your project folder or install it globally (*global* scope, downloads it into `~/.go-env`, symlinks into your project). Get started with the `godpkg init` command.
 
 ## Status
